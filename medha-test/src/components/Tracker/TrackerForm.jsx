@@ -6,6 +6,37 @@ export default function TrackerForm({ logForm, setLogForm, onSave, onCancel }) {
     setLogForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const boardSections = [
+    {
+      title: 'Today',
+      notes: [
+        { id: 1, title: 'Medication', text: 'Take vitamin D at 8:00 AM', color: 'bg-yellow-200' },
+        { id: 2, title: 'Hydration', text: 'Goal: 2L water before 6 PM', color: 'bg-cyan-200' },
+      ],
+    },
+    {
+      title: 'This Week',
+      notes: [
+        { id: 3, title: 'Appointment', text: 'Rheumatology follow-up on Friday', color: 'bg-pink-200' },
+        { id: 4, title: 'Check-in', text: 'Review symptom triggers with doctor', color: 'bg-orange-200' },
+      ],
+    },
+    {
+      title: 'Mood',
+      notes: [
+        { id: 5, title: 'Mood', text: 'Felt calmer after a rest break', color: 'bg-green-200' },
+        { id: 6, title: 'Stress', text: 'Lower stress after stretching routine', color: 'bg-violet-200' },
+      ],
+    },
+    {
+      title: 'Questions',
+      notes: [
+        { id: 7, title: 'Follow-up', text: 'Ask doctor about fatigue triggers', color: 'bg-blue-200' },
+        { id: 8, title: 'Goal', text: 'Track sleep quality more closely', color: 'bg-emerald-200' },
+      ],
+    },
+  ];
+
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
       <div className="border-b border-slate-200 pb-4 flex justify-between items-center">
@@ -163,6 +194,37 @@ export default function TrackerForm({ logForm, setLogForm, onSave, onCancel }) {
           </button>
         </div>
       </form>
+
+      <div className="mt-6 rounded-3xl border-2 border-dashed border-slate-300 bg-slate-100 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">Daily Whiteboard</h3>
+          <button
+            type="button"
+            className="px-3 py-1.5 text-[10px] font-semibold rounded-lg bg-slate-800 text-white"
+          >
+            + Add note
+          </button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {boardSections.map((section) => (
+            <div key={section.title} className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+              <h4 className="mb-3 text-[10px] font-bold uppercase tracking-wide text-slate-600">{section.title}</h4>
+              <div className="space-y-3">
+                {section.notes.map((note) => (
+                  <div
+                    key={note.id}
+                    className={`${note.color} rounded-2xl p-3 shadow-sm border border-slate-200 rotate-[-1deg] min-h-[90px]`}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-700">{note.title}</p>
+                    <p className="mt-2 text-sm text-slate-800 leading-relaxed">{note.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
