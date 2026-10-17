@@ -1,5 +1,6 @@
 import React from 'react';
 import { MessageSquare } from 'lucide-react';
+import { marked } from 'marked'; // 1. Import marked
 
 export default function AiChat({ chatMessages, chatInput, setChatInput, chatLoading, onSend }) {
   const handleKeyDown = (e) => {
@@ -22,7 +23,15 @@ export default function AiChat({ chatMessages, chatInput, setChatInput, chatLoad
                   : 'bg-slate-100 text-slate-800 mr-6'
               }`}
             >
-              {msg.text}
+              {/* 2. Render markdown for assistant, plain text for user if preferred */}
+              {msg.role === 'user' ? (
+                msg.text
+              ) : (
+                <div 
+                  className="markdown-content space-y-2"
+                  dangerouslySetInnerHTML={{ __html: marked.parse(msg.text || '') }} 
+                />
+              )}
             </div>
           ))}
           {chatLoading && (

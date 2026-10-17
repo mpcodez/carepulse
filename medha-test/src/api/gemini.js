@@ -1,9 +1,19 @@
 // Gemini API wrapper
-// In production, move the API key to a server-side proxy so it is never
-// exposed in the browser bundle.
+// Supports dynamic reading of import.meta.env, window.__gemini_api_key, or Vite env
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-const GEMINI_MODEL = 'gemini-2.5-flash-preview-05-20';
+function getApiKey() {
+  const envKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
+  if (envKey) return envKey;
+
+  if (typeof window !== 'undefined' && window.__gemini_api_key) {
+    return String(window.__gemini_api_key).trim();
+  }
+  return '';
+}
+
+// Default models to try: gemini-2.5-flash -> gemini-2.0-flash -> gemini-1.5-flash
+const PRIMARY_MODEL = 'gemini-3.8-flash';
+const FALLBACK_MODEL = 'gemini-3.8-flash';
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 /**
@@ -15,32 +25,55 @@ const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
  * @returns {Promise<string>} generated text
  */
 export async function callGemini(prompt, systemInstruction) {
-  const apiKey = GEMINI_API_KEY;
+  const apiKey = getApiKey();
   if (!apiKey) {
-    return 'Gemini API key is not configured. Set VITE_GEMINI_API_KEY in your .env.local file.';
+    return 'Gemini API key is not configured. Please ensure VITE_GEMINI_API_KEY is set in .env.local and restart your dev server.';
   }
 
-  const url = `${BASE_URL}/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-
-  const body = {
+  const payload = {
     contents: [{ parts: [{ text: prompt }] }],
   };
 
   if (systemInstruction) {
-    body.systemInstruction = {
+    payload.systemInstruction = {
       parts: [{ text: systemInstruction }],
     };
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  // Attempt with primary model, then fallback model if needed
+  const modelsToTry = [PRIMARY_MODEL, FALLBACK_MODEL];
+  let lastError = null;
 
-  const data = await response.json();
-  return (
-    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-    'Unable to generate a response at this time.'
-  );
+  for (const model of modelsToTry) {
+    try {
+      const url = `${BASE_URL}/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data?.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+        console.warn(`Gemini call failed with model ${model}:`, errorMsg);
+        lastError = errorMsg;
+        continue;
+      }
+
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) {
+        return text;
+      } else if (data?.candidates?.[0]?.finishReason) {
+        return `Response finished with reason: ${data.candidates[0].finishReason}`;
+      }
+    } catch (err) {
+      console.warn(`Network error with model ${model}:`, err);
+      lastError = err.message;
+    }
+  }
+
+  return `Unable to generate AI response. Details: ${lastError || 'Unknown error. Please check your API key and connection.'}`;
 }
+

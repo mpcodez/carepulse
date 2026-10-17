@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, RefreshCw } from 'lucide-react';
+import { marked } from 'marked'; // 1. Import marked
 
 export default function AiReport({ aiAnalysis, aiLoading, onGenerate }) {
   return (
@@ -28,9 +29,11 @@ export default function AiReport({ aiAnalysis, aiLoading, onGenerate }) {
       </div>
 
       {aiAnalysis ? (
-        <div className="bg-purple-50/50 p-5 rounded-xl border border-purple-100 text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed space-y-3">
-          {aiAnalysis}
-        </div>
+        /* 2. Render markdown output as safe HTML */
+        <div 
+          className="bg-purple-50/50 p-5 rounded-xl border border-purple-100 text-xs sm:text-sm text-slate-700 leading-relaxed space-y-3 markdown-content"
+          dangerouslySetInnerHTML={{ __html: marked.parse(aiAnalysis) }}
+        />
       ) : (
         <div className="p-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500 space-y-2">
           <Sparkles className="w-8 h-8 text-purple-400 mx-auto" />
