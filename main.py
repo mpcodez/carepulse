@@ -15,3 +15,6 @@ print("hello world")
 "intake and doctor appointments. "
 "Can you use the Gemini api to provide AI-driven insights and recommendations based on the patient's health data?"
 "Can you use a secure authentication system to ensure that only authorized users can access their health data?"
+
+
+https://gemini.google.com/app/e56f945936019c1a 

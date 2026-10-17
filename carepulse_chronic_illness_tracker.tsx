@@ -289,7 +289,7 @@ Please provide:
 
 Format cleanly with readable Markdown bold headers and bullet points. Include a short medical disclaimer at the bottom.`;
 
-      const apiKey = "";
+      const apiKey = "AQ.Ab8RN6I0goXehsOhDcffsfwwJWJ-PqlZt29M8jf6bP7rCBofZw";
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
       const response = await fetch(apiUrl, {
@@ -323,7 +323,7 @@ Format cleanly with readable Markdown bold headers and bullet points. Include a 
     setChatLoading(true);
 
     try {
-      const apiKey = "";
+      const apiKey = "AQ.Ab8RN6I0goXehsOhDcffsfwwJWJ-PqlZt29M8jf6bP7rCBofZw";
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
       const contextPrompt = `User's Health Logs: ${JSON.stringify(logs.slice(0, 5))}. 
