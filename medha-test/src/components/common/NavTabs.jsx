@@ -7,6 +7,7 @@ import {
   Pill,
   Sparkles,
   Share2,
+  Stethoscope,
 } from 'lucide-react';
 
 const TABS = [
@@ -17,6 +18,7 @@ const TABS = [
   { id: 'reminders', label: 'Reminders & Care Plan', icon: Pill },
   { id: 'ai-insights', label: 'Gemini AI Insights', icon: Sparkles },
   { id: 'share', label: 'Doctor Sharing', icon: Share2 },
+  { id: 'doctor-portal', label: 'Doctor Portal', icon: Stethoscope },
 ];
 
 export default function NavTabs({ activeTab, setActiveTab }) {

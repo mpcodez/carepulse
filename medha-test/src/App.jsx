@@ -23,6 +23,8 @@ import AppointmentList from './components/Reminders/AppointmentList';
 import AiReport from './components/AiInsights/AiReport';
 import AiChat from './components/AiInsights/AiChat';
 import SharePanel from './components/Share/SharePanel';
+import DoctorDashboard from './components/Doctor/DoctorDashboard';
+import VoiceCheckinModal from './components/Tracker/VoiceCheckinModal';
 
 export default function App() {
   // --- Auth ---
@@ -31,6 +33,12 @@ export default function App() {
   // --- Navigation ---
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  // --- Voice Check-in Modal State ---
+  const [isGlobalVoiceOpen, setIsGlobalVoiceOpen] = useState(false);
+
+  // --- Doctor Sharing Passcode State ---
+  const [shareCode, setShareCode] = useState('CP-482910');
 
   // --- Firestore-backed data ---
   const {
@@ -70,31 +78,40 @@ export default function App() {
     medsTaken: true,
   });
 
-  const handleSaveLog = async (e) => {
-    e.preventDefault();
+  // Direct save handler for 1-click voice submissions
+  const handleDirectSubmitLog = async (entryData) => {
     const entry = {
       ...logForm,
-      painLevel: Number(logForm.painLevel),
-      fatigueLevel: Number(logForm.fatigueLevel),
-      mood: Number(logForm.mood),
-      stress: Number(logForm.stress),
-      systolic: Number(logForm.systolic),
-      diastolic: Number(logForm.diastolic),
-      heartRate: Number(logForm.heartRate),
-      glucose: Number(logForm.glucose),
-      sleepHours: Number(logForm.sleepHours),
-      waterIntake: Number(logForm.waterIntake),
+      ...entryData,
+      painLevel: Number(entryData.painLevel ?? logForm.painLevel),
+      fatigueLevel: Number(entryData.fatigueLevel ?? logForm.fatigueLevel),
+      mood: Number(entryData.mood ?? logForm.mood),
+      stress: Number(entryData.stress ?? logForm.stress),
+      systolic: Number(entryData.systolic ?? logForm.systolic),
+      diastolic: Number(entryData.diastolic ?? logForm.diastolic),
+      heartRate: Number(entryData.heartRate ?? logForm.heartRate),
+      glucose: Number(entryData.glucose ?? logForm.glucose),
+      sleepHours: Number(entryData.sleepHours ?? logForm.sleepHours),
+      waterIntake: Number(entryData.waterIntake ?? logForm.waterIntake),
+      notes: entryData.notes ?? logForm.notes,
+      medsTaken: entryData.medsTaken ?? logForm.medsTaken,
+      date: entryData.date ?? logForm.date,
     };
 
-    const existing = logs.find((l) => l.date === logForm.date);
+    const existing = logs.find((l) => l.date === entry.date);
     if (existing) {
       await updateLog(existing.id, entry);
     } else {
       await addLog(entry);
     }
 
-    alert('Daily health entry saved successfully!');
+    alert('Voice health entry saved successfully!');
     setActiveTab('dashboard');
+  };
+
+  const handleSaveLog = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    await handleDirectSubmitLog(logForm);
   };
 
   // --- Medication toggle ---
@@ -185,6 +202,18 @@ Answer empathetically, concisely, and accurately based on patient care guideline
           <AlertBanner onViewSchedule={() => setActiveTab('reminders')} />
         )}
 
+        {/* Global Voice Check-in Modal */}
+        <VoiceCheckinModal
+          isOpen={isGlobalVoiceOpen}
+          onClose={() => setIsGlobalVoiceOpen(false)}
+          currentForm={logForm}
+          onApplyMetrics={(metrics) => {
+            setLogForm((prev) => ({ ...prev, ...metrics }));
+            setActiveTab('tracker');
+          }}
+          onDirectSubmit={handleDirectSubmitLog}
+        />
+
         {/* Dashboard */}
         {activeTab === 'dashboard' && (
           <Dashboard
@@ -196,6 +225,7 @@ Answer empathetically, concisely, and accurately based on patient care guideline
             setActiveTab={setActiveTab}
             setLogForm={setLogForm}
             handleToggleMed={handleToggleMed}
+            onOpenVoiceCheckin={() => setIsGlobalVoiceOpen(true)}
           />
         )}
 
@@ -205,6 +235,7 @@ Answer empathetically, concisely, and accurately based on patient care guideline
             logForm={logForm}
             setLogForm={setLogForm}
             onSave={handleSaveLog}
+            onDirectSubmit={handleDirectSubmitLog}
             onCancel={() => setActiveTab('dashboard')}
           />
         )}
@@ -245,7 +276,25 @@ Answer empathetically, concisely, and accurately based on patient care guideline
 
         {/* Doctor Sharing */}
         {activeTab === 'share' && (
-          <SharePanel logs={logs} avgPain={avgPain} medAdherence={medAdherence} />
+          <SharePanel
+            logs={logs}
+            avgPain={avgPain}
+            medAdherence={medAdherence}
+            shareCode={shareCode}
+            onGenerateCode={(code) => setShareCode(code)}
+            onNavigateToDoctorPortal={() => setActiveTab('doctor-portal')}
+          />
+        )}
+
+        {/* Doctor / Healthcare Provider Portal */}
+        {activeTab === 'doctor-portal' && (
+          <DoctorDashboard
+            logs={logs}
+            medications={medications}
+            appointments={appointments}
+            shareCode={shareCode}
+            user={user}
+          />
         )}
       </main>
 

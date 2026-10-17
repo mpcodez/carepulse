@@ -1,9 +1,19 @@
-import React from 'react';
-import { Activity, Heart, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { Activity, Heart, FileText, Mic, Sparkles } from 'lucide-react';
+import VoiceCheckinModal from './VoiceCheckinModal';
 
-export default function TrackerForm({ logForm, setLogForm, onSave, onCancel }) {
+export default function TrackerForm({ logForm, setLogForm, onSave, onCancel, onDirectSubmit }) {
+  const [isVoiceOpen, setIsVoiceOpen] = useState(false);
+
   const handleChange = (field, value) => {
     setLogForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleApplyVoiceMetrics = (metrics) => {
+    setLogForm((prev) => ({
+      ...prev,
+      ...metrics,
+    }));
   };
 
   const boardSections = [
@@ -39,21 +49,40 @@ export default function TrackerForm({ logForm, setLogForm, onSave, onCancel }) {
 
   return (
     <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-      <div className="border-b border-slate-200 pb-4 flex justify-between items-center">
+      <div className="border-b border-slate-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Daily Health Entry</h2>
           <p className="text-xs text-slate-500">Record symptoms, vitals, mood, and daily metrics.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-slate-600">Date:</label>
-          <input
-            type="date"
-            value={logForm.date}
-            onChange={(e) => handleChange('date', e.target.value)}
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-teal-500 outline-none"
-          />
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsVoiceOpen(true)}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-teal-600 hover:from-purple-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+            title="Low-Energy Voice Check-in powered by Gemini"
+          >
+            <Mic className="w-3.5 h-3.5" />
+            <span>Voice Check-in</span>
+          </button>
+          <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+            <label className="text-[11px] font-semibold text-slate-600">Date:</label>
+            <input
+              type="date"
+              value={logForm.date}
+              onChange={(e) => handleChange('date', e.target.value)}
+              className="px-1.5 py-0.5 border-0 bg-transparent text-xs font-medium focus:ring-0 outline-none"
+            />
+          </div>
         </div>
       </div>
+
+      <VoiceCheckinModal
+        isOpen={isVoiceOpen}
+        onClose={() => setIsVoiceOpen(false)}
+        currentForm={logForm}
+        onApplyMetrics={handleApplyVoiceMetrics}
+        onDirectSubmit={onDirectSubmit || onSave}
+      />
 
       <form onSubmit={onSave} className="space-y-6">
         {/* SYMPTOM SEVERITY */}

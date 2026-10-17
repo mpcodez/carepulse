@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { Share2, Download } from 'lucide-react';
 
-export default function SharePanel({ logs, avgPain, medAdherence }) {
-  const [shareCode, setShareCode] = useState('');
+export default function SharePanel({ logs, avgPain, medAdherence, shareCode: propShareCode, onGenerateCode: propOnGenerateCode, onNavigateToDoctorPortal }) {
+  const [localShareCode, setLocalShareCode] = useState('');
   const [shareExpiry, setShareExpiry] = useState('');
+
+  const shareCode = propShareCode || localShareCode;
 
   const handleGenerateShareCode = () => {
     const code = 'CP-' + Math.floor(100000 + Math.random() * 900000);
     const exp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString();
-    setShareCode(code);
+    setLocalShareCode(code);
     setShareExpiry(exp);
+    if (propOnGenerateCode) {
+      propOnGenerateCode(code, exp);
+    }
   };
 
   return (
@@ -34,15 +39,26 @@ export default function SharePanel({ logs, avgPain, medAdherence }) {
         </p>
 
         {shareCode ? (
-          <div className="p-4 bg-white rounded-xl border border-teal-300 flex items-center justify-between">
-            <div>
-              <span className="text-xs text-slate-500 block">Passcode</span>
-              <span className="text-xl font-mono font-bold text-teal-800">{shareCode}</span>
+          <div className="space-y-3">
+            <div className="p-4 bg-white rounded-xl border border-teal-300 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-500 block">Passcode</span>
+                <span className="text-xl font-mono font-bold text-teal-800">{shareCode}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-slate-500 block">Valid Until</span>
+                <span className="text-xs font-semibold text-slate-700">{shareExpiry}</span>
+              </div>
             </div>
-            <div className="text-right">
-              <span className="text-xs text-slate-500 block">Valid Until</span>
-              <span className="text-xs font-semibold text-slate-700">{shareExpiry}</span>
-            </div>
+            {onNavigateToDoctorPortal && (
+              <button
+                type="button"
+                onClick={onNavigateToDoctorPortal}
+                className="text-xs text-teal-700 hover:text-teal-850 font-bold underline flex items-center gap-1"
+              >
+                Open Doctor Portal with this passcode &rarr;
+              </button>
+            )}
           </div>
         ) : (
           <button

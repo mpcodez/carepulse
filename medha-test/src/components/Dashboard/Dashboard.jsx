@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Clock, Pill, Sparkles, Plus } from 'lucide-react';
+import { Activity, Clock, Pill, Sparkles, Plus, Mic } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
@@ -14,6 +14,7 @@ export default function Dashboard({
   setActiveTab,
   setLogForm,
   handleToggleMed,
+  onOpenVoiceCheckin,
 }) {
   const chartData = [...logs].reverse().slice(-7);
 
@@ -28,15 +29,25 @@ export default function Dashboard({
             with your medical team.
           </p>
         </div>
-        <button
-          onClick={() => {
-            setLogForm((prev) => ({ ...prev, date: new Date().toISOString().split('T')[0] }));
-            setActiveTab('tracker');
-          }}
-          className="bg-white text-teal-700 font-bold px-5 py-2.5 rounded-xl shadow hover:bg-teal-50 transition flex items-center gap-2 shrink-0"
-        >
-          <Plus className="w-5 h-5" /> Log Today's Entry
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+          <button
+            type="button"
+            onClick={onOpenVoiceCheckin}
+            className="bg-purple-700 hover:bg-purple-800 text-white font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2"
+            title="Low-Energy Voice Check-in"
+          >
+            <Mic className="w-4 h-4 text-purple-200" /> Voice Log
+          </button>
+          <button
+            onClick={() => {
+              setLogForm((prev) => ({ ...prev, date: new Date().toISOString().split('T')[0] }));
+              setActiveTab('tracker');
+            }}
+            className="bg-white text-teal-700 font-bold px-5 py-2.5 rounded-xl shadow hover:bg-teal-50 transition flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" /> Log Entry
+          </button>
+        </div>
       </div>
 
       {/* KEY STAT CARDS */}
