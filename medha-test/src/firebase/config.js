@@ -7,12 +7,12 @@ import { getFirestore } from 'firebase/firestore';
 const firebaseConfig = typeof __firebase_config !== 'undefined'
   ? JSON.parse(__firebase_config)
   : {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'demo-app.firebaseapp.com',
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-app',
-      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'demo-app.appspot.com',
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-      appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:123456789:web:demo',
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDigBEPt78LS2ddH0_lHrxvMiDq84f7cG4',
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'carepulse-414fb.firebaseapp.com',
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'carepulse-414fb',
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'carepulse-414fb.firebasestorage.app',
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1012375502923',
+      appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1012375502923:web:71a588fc30cc0cbe270dce',
     };
 
 const app = initializeApp(firebaseConfig);

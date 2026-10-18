@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Square, Sparkles, Check, AlertCircle, RefreshCw, X, Volume2 } from 'lucide-react';
 import { extractMetricsFromVoice } from '../../api/gemini';
 
-export default function VoiceCheckinModal({ isOpen, onClose, currentForm, onApplyMetrics, onDirectSubmit }) {
+export default function VoiceCheckinModal({ isOpen, onClose, currentForm = {}, onApplyMetrics, onDirectSubmit }) {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
@@ -10,7 +10,18 @@ export default function VoiceCheckinModal({ isOpen, onClose, currentForm, onAppl
   const [errorMsg, setErrorMsg] = useState('');
   const [speechSupported, setSpeechSupported] = useState(true);
 
+  // Safe fallback for logDate so it doesn't crash if currentForm is undefined
+  const [logDate, setLogDate] = useState(() => {
+    return currentForm?.date || new Date().toISOString().split('T')[0];
+  });
+
   const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (currentForm?.date) {
+      setLogDate(currentForm.date);
+    }
+  }, [currentForm?.date]);
 
   useEffect(() => {
     // Check for browser Web Speech API support
@@ -110,13 +121,19 @@ export default function VoiceCheckinModal({ isOpen, onClose, currentForm, onAppl
 
   const handleConfirmAndApply = () => {
     if (!extractedData) return;
-    onApplyMetrics(extractedData);
+    onApplyMetrics({
+      ...extractedData,
+      date: logDate,
+    });
     onClose();
   };
 
   const handleOneClickSubmit = () => {
     if (!extractedData) return;
-    onDirectSubmit(extractedData);
+    onDirectSubmit({
+      ...extractedData,
+      date: logDate,
+    });
     onClose();
   };
 
@@ -135,12 +152,21 @@ export default function VoiceCheckinModal({ isOpen, onClose, currentForm, onAppl
               <p className="text-xs text-teal-100">Speak naturally. Gemini fills your daily log.</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/20 transition text-white/80 hover:text-white"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={logDate}
+              onChange={(e) => setLogDate(e.target.value)}
+              className="bg-white/20 text-white text-xs px-2 py-1 rounded-lg border border-white/30 outline-none"
+              title="Target Log Date"
+            />
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-white/20 transition text-white/80 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* BODY */}

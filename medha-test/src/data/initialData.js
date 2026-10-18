@@ -7,7 +7,6 @@ export const initialLogs = [
   { id: '4', date: '2026-10-14', painLevel: 2, fatigueLevel: 3, mood: 5, stress: 2, systolic: 116, diastolic: 74, heartRate: 68, glucose: 92, sleepHours: 8.0, waterIntake: 2200, notes: 'Great day overall! Light walking for 20 mins.', medsTaken: true },
   { id: '5', date: '2026-10-15', painLevel: 6, fatigueLevel: 7, mood: 2, stress: 6, systolic: 125, diastolic: 82, heartRate: 82, glucose: 110, sleepHours: 5.2, waterIntake: 1200, notes: "High fatigue and brain fog. Couldn't focus much.", medsTaken: true },
   { id: '6', date: '2026-10-16', painLevel: 4, fatigueLevel: 4, mood: 4, stress: 3, systolic: 119, diastolic: 77, heartRate: 71, glucose: 96, sleepHours: 7.2, waterIntake: 2000, notes: 'Stabilizing after rest. Took all morning medications on time.', medsTaken: true },
-  { id: '7', date: '2026-10-17', painLevel: 3, fatigueLevel: 3, mood: 4, stress: 3, systolic: 117, diastolic: 75, heartRate: 70, glucose: 94, sleepHours: 7.8, waterIntake: 2100, notes: 'Feeling steady today.', medsTaken: true },
 ];
 
 export const initialMeds = [

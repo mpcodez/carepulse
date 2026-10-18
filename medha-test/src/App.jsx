@@ -105,7 +105,8 @@ export default function App() {
       await addLog(entry);
     }
 
-    alert('Voice health entry saved successfully!');
+    setLogForm(entry);
+    alert(`Health entry for ${entry.date} saved successfully!`);
     setActiveTab('dashboard');
   };
 

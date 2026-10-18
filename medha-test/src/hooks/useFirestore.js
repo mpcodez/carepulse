@@ -72,7 +72,11 @@ export function useFirestore(userId, collectionName, fallbackData = [], options 
     if (userId) {
       await addDoc(getColRef(), item);
     } else {
-      setData((prev) => [...prev, { ...item, id: Date.now().toString() }]);
+      setData((prev) => {
+        const next = [{ ...item, id: Date.now().toString() }, ...prev];
+        if (options.sort) next.sort(options.sort);
+        return next;
+      });
     }
   };
 
@@ -83,9 +87,11 @@ export function useFirestore(userId, collectionName, fallbackData = [], options 
         fields
       );
     } else {
-      setData((prev) =>
-        prev.map((d) => (d.id === docId ? { ...d, ...fields } : d))
-      );
+      setData((prev) => {
+        const next = prev.map((d) => (d.id === docId ? { ...d, ...fields } : d));
+        if (options.sort) next.sort(options.sort);
+        return next;
+      });
     }
   };
 
