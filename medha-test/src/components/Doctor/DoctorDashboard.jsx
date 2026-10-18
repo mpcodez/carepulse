@@ -1,21 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import {
   ShieldCheck, Lock, UserCheck, AlertTriangle, FileText, Activity,
-  Heart, Download, Sparkles, RefreshCw, CheckCircle, Clock, Pill, Calendar, ChevronRight
+  Heart, Download, RefreshCw, CheckCircle, Clock, Pill, Calendar, ChevronRight
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { callGemini } from '../../api/gemini';
 
-export default function DoctorDashboard({ logs, medications, appointments, shareCode, user }) {
+export default function DoctorDashboard({ logs, medications, appointments, shareCode, user, userRole }) {
   const [enteredCode, setEnteredCode] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(userRole === 'doctor');
   const [authError, setAuthError] = useState('');
 
-  // Clinical Summary State
-  const [clinicalBriefing, setClinicalBriefing] = useState('');
-  const [briefingLoading, setBriefingLoading] = useState(false);
+  // Auto authenticate if logged in as a doctor
+  React.useEffect(() => {
+    if (userRole === 'doctor') {
+      setIsAuthenticated(true);
+    }
+  }, [userRole]);
+
   const [selectedLog, setSelectedLog] = useState(null);
 
   // Authentication check: matches active shareCode or demo code 'CP-DEMO'
@@ -57,34 +60,6 @@ export default function DoctorDashboard({ logs, medications, appointments, share
   const flaggedFlares = useMemo(() => {
     return logs.filter(l => (l.painLevel >= 6 || l.fatigueLevel >= 7));
   }, [logs]);
-
-  // Generate Doctor Briefing via Gemini
-  const handleGenerateClinicalBriefing = async () => {
-    setBriefingLoading(true);
-    try {
-      const prompt = `You are a clinical physician assistant synthesizing longitudinal chronic care patient data for a doctor's 15-minute appointment.
-Patient Log Data (Last 14 days): ${JSON.stringify(logs.slice(0, 14))}
-Active Medications: ${JSON.stringify(medications)}
-Upcoming Appointments: ${JSON.stringify(appointments)}
-
-Please prepare a structured Clinical Briefing:
-1. CLINICAL SYNOPSIS: 2-3 sentence overview of symptom control and flare stability.
-2. FLARE EPISODES & TRIGGERS: Notable symptom spikes, reported pain locations, or sleep disturbances.
-3. MEDICATION ADHERENCE & SAFETY CONCERNS: Any potential interaction or adherence gaps.
-4. RECOMMENDED DISCUSSION TOPICS: 3 specific questions for the physician to address during the encounter.
-
-Format in clean bullet points with medical terminology suitable for a physician.`;
-
-      const systemInstruction = 'You are a board-certified clinical informatics specialist creating a concise physician consultation brief.';
-      const res = await callGemini(prompt, systemInstruction);
-      setClinicalBriefing(res);
-    } catch (err) {
-      console.error('Error generating clinical brief:', err);
-      setClinicalBriefing('Error generating clinical briefing. Please retry.');
-    } finally {
-      setBriefingLoading(false);
-    }
-  };
 
   // LOCKED STATE: Doctor must enter valid access passcode
   if (!isAuthenticated) {
@@ -217,39 +192,6 @@ Format in clean bullet points with medical terminology suitable for a physician.
           </div>
           <span className="text-[10px] text-rose-500 font-semibold block mt-1">Requires review</span>
         </div>
-      </div>
-
-      {/* GEMINI AI CLINICAL BRIEFING GENERATOR */}
-      <div className="bg-gradient-to-br from-slate-900 to-teal-950 text-white p-6 rounded-3xl shadow-lg space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700/60 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-teal-500/20 text-teal-300 rounded-2xl border border-teal-500/30">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-base">Gemini AI Physician Pre-Encounter Briefing</h3>
-              <p className="text-xs text-slate-400">Automated synthesis of longitudinal trends, flare triggers, and discussion topics</p>
-            </div>
-          </div>
-          <button
-            onClick={handleGenerateClinicalBriefing}
-            disabled={briefingLoading}
-            className="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold rounded-xl text-xs transition flex items-center gap-2 disabled:opacity-50"
-          >
-            {briefingLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {clinicalBriefing ? 'Regenerate Brief' : 'Generate 15-Min Clinical Brief'}
-          </button>
-        </div>
-
-        {clinicalBriefing ? (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-xs text-slate-200 whitespace-pre-line leading-relaxed space-y-2">
-            {clinicalBriefing}
-          </div>
-        ) : (
-          <div className="text-center py-6 text-slate-400 text-xs">
-            Click "Generate 15-Min Clinical Brief" to compile patient history into a physician briefing.
-          </div>
-        )}
       </div>
 
       {/* CHARTS: PAIN/FATIGUE TRAJECTORY & BLOOD PRESSURE */}

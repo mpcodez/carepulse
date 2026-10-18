@@ -21,11 +21,25 @@ const TABS = [
   { id: 'doctor-portal', label: 'Doctor Portal', icon: Stethoscope },
 ];
 
-export default function NavTabs({ activeTab, setActiveTab }) {
+export default function NavTabs({ activeTab, setActiveTab, userRole = 'patient' }) {
+  const isDoctor = userRole === 'doctor';
+
+  // Customize tabs based on role
+  const visibleTabs = isDoctor
+    ? [
+        { id: 'doctor-portal', label: 'Clinical Chart', icon: Stethoscope },
+        { id: 'analytics', label: 'Patient Analytics & Vitals', icon: FileText },
+        { id: 'calendar', label: 'Calendar Timeline', icon: CalendarIcon },
+        { id: 'reminders', label: 'Active Care Plan', icon: Pill },
+        { id: 'ai-insights', label: 'Gemini Clinical AI', icon: Sparkles },
+        { id: 'dashboard', label: 'Patient View Preview', icon: Activity },
+      ]
+    : TABS;
+
   return (
     <div className="bg-teal-800 border-t border-teal-600/50">
       <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto space-x-1 sm:space-x-4">
-        {TABS.map((tab) => {
+        {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (

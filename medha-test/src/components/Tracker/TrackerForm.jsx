@@ -217,7 +217,10 @@ export default function TrackerForm({ logForm, setLogForm, onSave, onCancel, onD
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-md transition"
+            onClick={(e) => {
+              if (onSave) onSave(e);
+            }}
+            className="px-6 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold shadow-md transition cursor-pointer"
           >
             Save Log Entry
           </button>

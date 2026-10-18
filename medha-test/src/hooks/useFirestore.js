@@ -69,39 +69,52 @@ export function useFirestore(userId, collectionName, fallbackData = [], options 
   // --- Mutation helpers ---
 
   const add = async (item) => {
+    // Optimistically update local state so UI updates immediately
+    setData((prev) => {
+      const next = [{ ...item, id: Date.now().toString() }, ...prev];
+      if (options.sort) next.sort(options.sort);
+      return next;
+    });
+
     if (userId) {
-      await addDoc(getColRef(), item);
-    } else {
-      setData((prev) => {
-        const next = [{ ...item, id: Date.now().toString() }, ...prev];
-        if (options.sort) next.sort(options.sort);
-        return next;
-      });
+      try {
+        await addDoc(getColRef(), item);
+      } catch (err) {
+        console.warn(`Firestore addDoc failed (${collectionName}):`, err.message);
+      }
     }
   };
 
   const update = async (docId, fields) => {
+    // Optimistically update local state
+    setData((prev) => {
+      const next = prev.map((d) => (d.id === docId ? { ...d, ...fields } : d));
+      if (options.sort) next.sort(options.sort);
+      return next;
+    });
+
     if (userId) {
-      await updateDoc(
-        doc(db, 'artifacts', appId, 'users', userId, collectionName, docId),
-        fields
-      );
-    } else {
-      setData((prev) => {
-        const next = prev.map((d) => (d.id === docId ? { ...d, ...fields } : d));
-        if (options.sort) next.sort(options.sort);
-        return next;
-      });
+      try {
+        await updateDoc(
+          doc(db, 'artifacts', appId, 'users', userId, collectionName, docId),
+          fields
+        );
+      } catch (err) {
+        console.warn(`Firestore updateDoc failed (${collectionName}):`, err.message);
+      }
     }
   };
 
   const remove = async (docId) => {
+    setData((prev) => prev.filter((d) => d.id !== docId));
     if (userId) {
-      await deleteDoc(
-        doc(db, 'artifacts', appId, 'users', userId, collectionName, docId)
-      );
-    } else {
-      setData((prev) => prev.filter((d) => d.id !== docId));
+      try {
+        await deleteDoc(
+          doc(db, 'artifacts', appId, 'users', userId, collectionName, docId)
+        );
+      } catch (err) {
+        console.warn(`Firestore deleteDoc failed (${collectionName}):`, err.message);
+      }
     }
   };
 

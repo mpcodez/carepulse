@@ -13,6 +13,10 @@ import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import AlertBanner from './components/common/AlertBanner';
 
+// Auth & Landing
+import AuthModal from './components/Auth/AuthModal';
+import LandingHome from './components/Home/LandingHome';
+
 // Views
 import Dashboard from './components/Dashboard/Dashboard';
 import TrackerForm from './components/Tracker/TrackerForm';
@@ -26,9 +30,25 @@ import SharePanel from './components/Share/SharePanel';
 import DoctorDashboard from './components/Doctor/DoctorDashboard';
 import VoiceCheckinModal from './components/Tracker/VoiceCheckinModal';
 
+// Shared patient record ID so patient updates show in doctor view in real time
+const ACTIVE_PATIENT_RECORD_ID = 'primary-patient';
+
 export default function App() {
   // --- Auth ---
   const { user, loading: authLoading } = useAuth();
+  const [userRole, setUserRole] = useState('patient'); // 'patient' or 'doctor'
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalInitialRole, setAuthModalInitialRole] = useState('patient');
+  
+  // Show Landing screen when user is logged out (or explicitly exits)
+  const [showLanding, setShowLanding] = useState(!user);
+
+  // Sync showLanding when user logs in or out
+  React.useEffect(() => {
+    if (!user) {
+      setShowLanding(true);
+    }
+  }, [user]);
 
   // --- Navigation ---
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -40,12 +60,16 @@ export default function App() {
   // --- Doctor Sharing Passcode State ---
   const [shareCode, setShareCode] = useState('CP-482910');
 
+  // Both patient and doctor view and update the same patient record ID
+  // This guarantees when patient logs or speaks, doctor sees it immediately
+  const targetDataUserId = ACTIVE_PATIENT_RECORD_ID;
+
   // --- Firestore-backed data ---
   const {
     data: logs,
     add: addLog,
     update: updateLog,
-  } = useFirestore(user?.uid, 'healthLogs', initialLogs, {
+  } = useFirestore(targetDataUserId, 'healthLogs', initialLogs, {
     sort: (a, b) => new Date(b.date) - new Date(a.date),
   });
 
@@ -53,10 +77,10 @@ export default function App() {
     data: medications,
     update: updateMed,
     add: addMed,
-  } = useFirestore(user?.uid, 'medications', initialMeds);
+  } = useFirestore(targetDataUserId, 'medications', initialMeds);
 
   const { data: appointments, add: addAppointment } = useFirestore(
-    user?.uid,
+    targetDataUserId,
     'appointments',
     initialAppointments
   );
@@ -187,14 +211,67 @@ Answer empathetically, concisely, and accurately based on patient care guideline
   }, [medications]);
 
   // --- Render ---
+  if (showLanding && !user) {
+    return (
+      <>
+        <LandingHome
+          onSelectRole={(role) => {
+            setUserRole(role);
+            setActiveTab(role === 'doctor' ? 'doctor-portal' : 'dashboard');
+            setShowLanding(false);
+          }}
+          onOpenAuth={(role = 'patient') => {
+            setAuthModalInitialRole(role);
+            setIsAuthModalOpen(true);
+          }}
+        />
+
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          initialRole={authModalInitialRole}
+          onClose={() => setIsAuthModalOpen(false)}
+          onLoginSuccess={(authUser, role) => {
+            setIsAuthModalOpen(false);
+            setUserRole(role);
+            setActiveTab(role === 'doctor' ? 'doctor-portal' : 'dashboard');
+            setShowLanding(false);
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
       <Header
         user={user}
+        userRole={userRole}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         notificationsEnabled={notificationsEnabled}
         setNotificationsEnabled={setNotificationsEnabled}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onSwitchRole={() => {
+          const nextRole = userRole === 'doctor' ? 'patient' : 'doctor';
+          setUserRole(nextRole);
+          setActiveTab(nextRole === 'doctor' ? 'doctor-portal' : 'dashboard');
+        }}
+        onLogoutSuccess={() => {
+          setShowLanding(true);
+        }}
+      />
+
+      {/* Authentication / Login Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        initialRole={authModalInitialRole}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={(authUser, role) => {
+          setIsAuthModalOpen(false);
+          setUserRole(role);
+          setActiveTab(role === 'doctor' ? 'doctor-portal' : 'dashboard');
+          setShowLanding(false);
+        }}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
@@ -283,7 +360,10 @@ Answer empathetically, concisely, and accurately based on patient care guideline
             medAdherence={medAdherence}
             shareCode={shareCode}
             onGenerateCode={(code) => setShareCode(code)}
-            onNavigateToDoctorPortal={() => setActiveTab('doctor-portal')}
+            onNavigateToDoctorPortal={() => {
+              setUserRole('doctor');
+              setActiveTab('doctor-portal');
+            }}
           />
         )}
 
@@ -295,6 +375,7 @@ Answer empathetically, concisely, and accurately based on patient care guideline
             appointments={appointments}
             shareCode={shareCode}
             user={user}
+            userRole={userRole}
           />
         )}
       </main>
